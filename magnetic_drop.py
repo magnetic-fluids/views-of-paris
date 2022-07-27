@@ -5,6 +5,8 @@ from paraview.simple import *
 
 # disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
+# get active view
+main_view = GetActiveViewOrCreate('RenderView')
 
 # we should have gotten an "out" directory as an argument
 #if len(sys.argv) != 2:
@@ -22,20 +24,55 @@ def file_to_idxs(file):
 	return map(int, re.findall(r'\d+', file.name))
 
 [steps, processes] = file_to_idxs(input_files[-1])
+print(f'{steps} steps, {processes} processes')
 # preallocate list of sources
 sources = [[None] * (processes + 1)] * (steps + 1)
 
 for file in input_files:
+	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
+	display = GetDisplayProperties(source)
 	[step, process] = file_to_idxs(file)
-	sources[step][process] = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
-
-exit()
-
-# get active view
-view = GetActiveViewOrCreate('RenderView')
+	sources[step][process] = (source, display)
 
 # show data in view
+def show_timestep(source_list, timestep):
+	for (source, display) in source_list[timestep]:
+		Show(source, main_view)
+
+show_timestep(sources, 0)
+
+#================================================================
+# addendum: following script captures some of the application
+# state to faithfully reproduce the visualization during playback
+#================================================================
+
+# get layout
+main_layout = GetLayout()
+
+#--------------------------------
+# saving layout sizes for layouts
+
+# layout/tab size in pixels
+main_layout.SetSize(1602, 695)
+
+#-----------------------------------
+# saving camera placements for views
+
+# current camera placement for renderView1
+main_view.CameraPosition = [.1, -.07, .05]
+main_view.CameraViewUp = [0, 0, 1]
+main_view.CameraViewAngle = 20
+
+#--------------------------------------------
+# uncomment the following to render all views
+#RenderAllViews()
+# alternatively, if you want to write images, you can use SaveScreenshot(...).
+SaveScreenshot("magnetic_drop.png", main_view)
+exit()
+
 vOF0002000003vtkDisplay = Show(vOF0002000003vtk, renderView1, 'StructuredGridRepresentation')
+
+
 
 # trace defaults for the display properties.
 vOF0002000003vtkDisplay.Representation = 'Outline'
@@ -824,30 +861,3 @@ gradientLUT = GetColorTransferFunction('Gradient')
 # get opacity transfer function/opacity map for 'Gradient'
 gradientPWF = GetOpacityTransferFunction('Gradient')
 
-#================================================================
-# addendum: following script captures some of the application
-# state to faithfully reproduce the visualization during playback
-#================================================================
-
-# get layout
-layout1 = GetLayout()
-
-#--------------------------------
-# saving layout sizes for layouts
-
-# layout/tab size in pixels
-layout1.SetSize(1602, 695)
-
-#-----------------------------------
-# saving camera placements for views
-
-# current camera placement for renderView1
-renderView1.CameraPosition = [.1, -.07, .05]
-renderView1.CameraViewUp = [0, 0, 1]
-renderView1.CameraViewAngle = 20
-
-#--------------------------------------------
-# uncomment the following to render all views
-# RenderAllViews()
-# alternatively, if you want to write images, you can use SaveScreenshot(...).
-SaveScreenshot("magnetic_drop.png", GetActiveView())
