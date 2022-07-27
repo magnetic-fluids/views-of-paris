@@ -34,6 +34,97 @@ for file in input_files:
 	[step, process] = file_to_idxs(file)
 	sources[step][process] = (source, display)
 
+	# create a new 'Cell Data to Point Data'
+	cellDatatoPointData1 = CellDatatoPointData(registrationName=file.name + 'CellDatatoPointData1', Input=source)
+	cellDatatoPointData1.CellDataArraytoprocess = ['VOF']
+
+	# show data in view
+	cellDatatoPointData1Display = Show(cellDatatoPointData1, main_view, 'StructuredGridRepresentation')
+
+	# trace defaults for the display properties.
+	cellDatatoPointData1Display.Representation = 'Outline'
+	cellDatatoPointData1Display.ColorArrayName = ['POINTS', '']
+	cellDatatoPointData1Display.SelectTCoordArray = 'None'
+	cellDatatoPointData1Display.SelectNormalArray = 'None'
+	cellDatatoPointData1Display.SelectTangentArray = 'None'
+	cellDatatoPointData1Display.OSPRayScaleArray = 'VOF'
+	cellDatatoPointData1Display.OSPRayScaleFunction = 'PiecewiseFunction'
+	cellDatatoPointData1Display.SelectOrientationVectors = 'None'
+	cellDatatoPointData1Display.ScaleFactor = 0.002
+	cellDatatoPointData1Display.SelectScaleArray = 'VOF'
+	cellDatatoPointData1Display.GlyphType = 'Arrow'
+	cellDatatoPointData1Display.GlyphTableIndexArray = 'VOF'
+	cellDatatoPointData1Display.GaussianRadius = 0.0001
+	cellDatatoPointData1Display.SetScaleArray = ['POINTS', 'VOF']
+	cellDatatoPointData1Display.ScaleTransferFunction = 'PiecewiseFunction'
+	cellDatatoPointData1Display.OpacityArray = ['POINTS', 'VOF']
+	cellDatatoPointData1Display.OpacityTransferFunction = 'PiecewiseFunction'
+	cellDatatoPointData1Display.DataAxesGrid = 'GridAxesRepresentation'
+	cellDatatoPointData1Display.PolarAxes = 'PolarAxesRepresentation'
+	cellDatatoPointData1Display.ScalarOpacityUnitDistance = 0.0010825317547305483
+
+	# set scalar coloring
+	ColorBy(cellDatatoPointData1Display, ('POINTS', 'VOF'))
+
+	# rescale color and/or opacity maps used to include current data range
+	cellDatatoPointData1Display.RescaleTransferFunctionToDataRange(True, False)
+
+	# show color bar/color legend
+	cellDatatoPointData1Display.SetScalarBarVisibility(main_view, True)
+
+	# get color transfer function/color map for 'VOF'
+	vOFLUT = GetColorTransferFunction('VOF')
+
+	# get opacity transfer function/opacity map for 'VOF'
+	vOFPWF = GetOpacityTransferFunction('VOF')
+
+	# turn off scalar coloring
+	ColorBy(cellDatatoPointData1Display, None)
+
+	# Hide the scalar bar for this color map if no visible data is colored by it.
+	HideScalarBarIfNotNeeded(vOFLUT, main_view)
+
+	# create a new 'Contour'
+	contour1 = Contour(registrationName=file.name + 'Contour1', Input=cellDatatoPointData1)
+	contour1.ContourBy = ['POINTS', 'VOF']
+	contour1.Isosurfaces = [0.5]
+	contour1.PointMergeMethod = 'Uniform Binning'
+
+	# show data in view
+	contour1Display = Show(contour1, main_view, 'GeometryRepresentation')
+
+	# trace defaults for the display properties.
+	contour1Display.Representation = 'Surface'
+	contour1Display.ColorArrayName = ['POINTS', 'VOF']
+	contour1Display.LookupTable = vOFLUT
+	contour1Display.SelectTCoordArray = 'None'
+	contour1Display.SelectNormalArray = 'Normals'
+	contour1Display.SelectTangentArray = 'None'
+	contour1Display.OSPRayScaleArray = 'VOF'
+	contour1Display.OSPRayScaleFunction = 'PiecewiseFunction'
+	contour1Display.SelectOrientationVectors = 'None'
+	contour1Display.ScaleFactor = 0.0005978681275029103
+	contour1Display.SelectScaleArray = 'VOF'
+	contour1Display.GlyphType = 'Arrow'
+	contour1Display.GlyphTableIndexArray = 'VOF'
+	contour1Display.GaussianRadius = 2.9893406375145516e-05
+	contour1Display.SetScaleArray = ['POINTS', 'VOF']
+	contour1Display.ScaleTransferFunction = 'PiecewiseFunction'
+	contour1Display.OpacityArray = ['POINTS', 'VOF']
+	contour1Display.OpacityTransferFunction = 'PiecewiseFunction'
+	contour1Display.DataAxesGrid = 'GridAxesRepresentation'
+	contour1Display.PolarAxes = 'PolarAxesRepresentation'
+
+	# init the 'PiecewiseFunction' selected for 'ScaleTransferFunction'
+	contour1Display.ScaleTransferFunction.Points = [0.5, 0.0, 0.5, 0.0, 0.5001220703125, 1.0, 0.5, 0.0]
+
+	# init the 'PiecewiseFunction' selected for 'OpacityTransferFunction'
+	contour1Display.OpacityTransferFunction.Points = [0.5, 0.0, 0.5, 0.0, 0.5001220703125, 1.0, 0.5, 0.0]
+
+	# show color bar/color legend
+	contour1Display.SetScalarBarVisibility(main_view, True)
+
+
 # show data in view
 def show_timestep(source_list, timestep):
 	for (source, display) in source_list[timestep]:
