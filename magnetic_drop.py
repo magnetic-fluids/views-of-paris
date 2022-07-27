@@ -33,7 +33,9 @@ for file in input_files:
 	display = GetDisplayProperties(source)
 	[step, process] = file_to_idxs(file)
 	sources[step][process] = (source, display)
+	Hide(source, main_view)
 
+	# convert cell data to point data
 	cell_to_point = CellDatatoPointData(registrationName=file.name + '_cell_to_point', Input=source)
 	cell_to_point.CellDataArraytoprocess = ['VOF']
 
@@ -45,8 +47,9 @@ for file in input_files:
 	vOFLUT = GetColorTransferFunction('VOF')
 	ColorBy(cell_to_point_display, None)
 	HideScalarBarIfNotNeeded(vOFLUT, main_view)
+	Hide(cell_to_point, main_view)
 
-	# create a contour display
+	# create a contour around the drop
 	contour = Contour(registrationName=file.name + '_contour', Input=cell_to_point)
 	contour.ContourBy = ['POINTS', 'VOF']
 	contour.Isosurfaces = [0.5]
@@ -75,6 +78,7 @@ for file in input_files:
 	display = GetDisplayProperties(source)
 	[step, process] = file_to_idxs(file)
 	mag_sources[step][process] = (source, display)
+	Hide(source, main_view)
 
 	# set up magnetics coloring
 	display.SetRepresentationType('Wireframe')
@@ -82,7 +86,6 @@ for file in input_files:
 	display.RescaleTransferFunctionToDataRange(True, False)
 	display.SetScalarBarVisibility(main_view, True)
 	pHIMAGLUT = GetColorTransferFunction('PHIMAG')
-	Hide(source, main_view)
 
 	# get the gradient of the magnetic potential
 	gradient = Gradient(registrationName=file.name + '_gradient', Input=source)
@@ -106,8 +109,9 @@ for file in input_files:
 	field_lines.MaximumStreamlineLength = 0.02
 
 	# init the 'Line' selected for 'SeedType'
-	field_lines.SeedType.Point1 = [0.02, 0.02, 0.02]
-	field_lines.SeedType.Point2 = [0.04, 0.04, 0.04]
+	#field_lines.SeedType.Point1 = [0.02, 0.02, 0.02]
+	#field_lines.SeedType.Point2 = [0.04, 0.04, 0.04]
+	field_lines.SeedType.Resolution = 200
 
 	# show data in view
 	field_lines_display = Show(field_lines, main_view, 'GeometryRepresentation')
@@ -120,7 +124,7 @@ def show_timestep(source_list, timestep):
 	for (source, display) in source_list[timestep]:
 		Show(source, main_view)
 
-show_timestep(sources, 0)
+#show_timestep(sources, 0)
 
 # set up plot and save a screenie
 main_view.Update()
