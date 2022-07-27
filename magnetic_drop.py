@@ -82,11 +82,13 @@ for file in input_files:
 	display.RescaleTransferFunctionToDataRange(True, False)
 	display.SetScalarBarVisibility(main_view, True)
 	pHIMAGLUT = GetColorTransferFunction('PHIMAG')
+	Hide(source, main_view)
 
 	# get the gradient of the magnetic potential
 	gradient = Gradient(registrationName=file.name + '_gradient', Input=source)
 	gradient.ScalarArray = ['CELLS', 'PHIMAG']
 	gradient_display = Show(gradient, main_view, 'StructuredGridRepresentation')
+	Hide(gradient, main_view)
 
 	# show a collection of field vectors
 	field_vecs = Glyph(registrationName=file.name + '_field_vecs', Input=gradient, GlyphType='Arrow')
