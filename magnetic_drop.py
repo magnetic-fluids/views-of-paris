@@ -58,6 +58,28 @@ for file in input_files:
 	contour_display.LookupTable = vOFLUT
 	contour_display.SetScalarBarVisibility(main_view, True)
 
+# read all magnetics files and organize by timestep
+input_files = sorted(input_path.glob('mag00000*.vtk'))
+
+# assuming all the files are present and formatted as VOFstep-process.vtk...
+def file_to_idxs(file):
+	return map(int, re.findall(r'\d+', file.name))
+
+[steps, processes] = file_to_idxs(input_files[-1])
+print(f'{steps} steps, {processes} processes')
+# preallocate list of sources
+mag_sources = [[None] * (processes + 1)] * (steps + 1)
+
+for file in input_files:
+	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
+	display = GetDisplayProperties(source)
+	[step, process] = file_to_idxs(file)
+	mag_sources[step][process] = (source, display)
+
+	# set up magnetics coloring
+	display.SetRepresentationType('Wireframe')
+	ColorBy(display, ('CELLS', 'PHIMAG'))
+
 # show data in view
 def show_timestep(source_list, timestep):
 	for (source, display) in source_list[timestep]:
@@ -566,4 +588,3 @@ gradientLUT = GetColorTransferFunction('Gradient')
 
 # get opacity transfer function/opacity map for 'Gradient'
 gradientPWF = GetOpacityTransferFunction('Gradient')
-
