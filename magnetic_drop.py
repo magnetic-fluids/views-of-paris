@@ -37,92 +37,26 @@ for file in input_files:
 	cell_to_point = CellDatatoPointData(registrationName=file.name + '_cell_to_point', Input=source)
 	cell_to_point.CellDataArraytoprocess = ['VOF']
 
-	# show data in view
+	# create a display object, as it's necessary for the colormap
 	cell_to_point_display = Show(cell_to_point, main_view, 'StructuredGridRepresentation')
-
-	# trace defaults for the display properties.
-	cell_to_point_display.Representation = 'Outline'
-	cell_to_point_display.ColorArrayName = ['POINTS', '']
-	cell_to_point_display.SelectTCoordArray = 'None'
-	cell_to_point_display.SelectNormalArray = 'None'
-	cell_to_point_display.SelectTangentArray = 'None'
-	cell_to_point_display.OSPRayScaleArray = 'VOF'
-	cell_to_point_display.OSPRayScaleFunction = 'PiecewiseFunction'
-	cell_to_point_display.SelectOrientationVectors = 'None'
-	cell_to_point_display.ScaleFactor = 0.002
-	cell_to_point_display.SelectScaleArray = 'VOF'
-	cell_to_point_display.GlyphType = 'Arrow'
-	cell_to_point_display.GlyphTableIndexArray = 'VOF'
-	cell_to_point_display.GaussianRadius = 0.0001
-	cell_to_point_display.SetScaleArray = ['POINTS', 'VOF']
-	cell_to_point_display.ScaleTransferFunction = 'PiecewiseFunction'
-	cell_to_point_display.OpacityArray = ['POINTS', 'VOF']
-	cell_to_point_display.OpacityTransferFunction = 'PiecewiseFunction'
-	cell_to_point_display.DataAxesGrid = 'GridAxesRepresentation'
-	cell_to_point_display.PolarAxes = 'PolarAxesRepresentation'
-	cell_to_point_display.ScalarOpacityUnitDistance = 0.0010825317547305483
-
-	# set scalar coloring
 	ColorBy(cell_to_point_display, ('POINTS', 'VOF'))
-
-	# rescale color and/or opacity maps used to include current data range
 	cell_to_point_display.RescaleTransferFunctionToDataRange(True, False)
-
-	# show color bar/color legend
 	cell_to_point_display.SetScalarBarVisibility(main_view, True)
-
-	# get color transfer function/color map for 'VOF'
 	vOFLUT = GetColorTransferFunction('VOF')
-
-	# get opacity transfer function/opacity map for 'VOF'
-	vOFPWF = GetOpacityTransferFunction('VOF')
-
-	# turn off scalar coloring
 	ColorBy(cell_to_point_display, None)
-
-	# Hide the scalar bar for this color map if no visible data is colored by it.
 	HideScalarBarIfNotNeeded(vOFLUT, main_view)
 
-	# create a new 'Contour'
+	# create a contour display
 	contour = Contour(registrationName=file.name + '_contour', Input=cell_to_point)
 	contour.ContourBy = ['POINTS', 'VOF']
 	contour.Isosurfaces = [0.5]
 	contour.PointMergeMethod = 'Uniform Binning'
 
-	# show data in view
 	contour_display = Show(contour, main_view, 'GeometryRepresentation')
-
-	# trace defaults for the display properties.
 	contour_display.Representation = 'Surface'
 	contour_display.ColorArrayName = ['POINTS', 'VOF']
 	contour_display.LookupTable = vOFLUT
-	contour_display.SelectTCoordArray = 'None'
-	contour_display.SelectNormalArray = 'Normals'
-	contour_display.SelectTangentArray = 'None'
-	contour_display.OSPRayScaleArray = 'VOF'
-	contour_display.OSPRayScaleFunction = 'PiecewiseFunction'
-	contour_display.SelectOrientationVectors = 'None'
-	contour_display.ScaleFactor = 0.0005978681275029103
-	contour_display.SelectScaleArray = 'VOF'
-	contour_display.GlyphType = 'Arrow'
-	contour_display.GlyphTableIndexArray = 'VOF'
-	contour_display.GaussianRadius = 2.9893406375145516e-05
-	contour_display.SetScaleArray = ['POINTS', 'VOF']
-	contour_display.ScaleTransferFunction = 'PiecewiseFunction'
-	contour_display.OpacityArray = ['POINTS', 'VOF']
-	contour_display.OpacityTransferFunction = 'PiecewiseFunction'
-	contour_display.DataAxesGrid = 'GridAxesRepresentation'
-	contour_display.PolarAxes = 'PolarAxesRepresentation'
-
-	# init the 'PiecewiseFunction' selected for 'ScaleTransferFunction'
-	contour_display.ScaleTransferFunction.Points = [0.5, 0.0, 0.5, 0.0, 0.5001220703125, 1.0, 0.5, 0.0]
-
-	# init the 'PiecewiseFunction' selected for 'OpacityTransferFunction'
-	contour_display.OpacityTransferFunction.Points = [0.5, 0.0, 0.5, 0.0, 0.5001220703125, 1.0, 0.5, 0.0]
-
-	# show color bar/color legend
 	contour_display.SetScalarBarVisibility(main_view, True)
-
 
 # show data in view
 def show_timestep(source_list, timestep):
