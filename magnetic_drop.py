@@ -17,7 +17,7 @@ main_view = GetActiveViewOrCreate('RenderView')
 input_path = Path.cwd() / 'magparis_vw/out/VTK' #Path(sys.argv[1]) / 'VTK'
 
 # read all volume-of-fluid files and organize by timestep
-input_files = sorted(input_path.glob('VOF*.vtk'))
+input_files = sorted(input_path.glob('VOF00000*.vtk'))
 
 # assuming all the files are present and formatted as VOFstep-process.vtk...
 def file_to_idxs(file):
