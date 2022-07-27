@@ -41,32 +41,18 @@ def show_timestep(source_list, timestep):
 
 show_timestep(sources, 0)
 
-#================================================================
-# addendum: following script captures some of the application
-# state to faithfully reproduce the visualization during playback
-#================================================================
-
-# get layout
+# set up plot and save a screenie
+main_view.Update()
+main_view.ResetCamera(False)
 main_layout = GetLayout()
-
-#--------------------------------
-# saving layout sizes for layouts
-
-# layout/tab size in pixels
 main_layout.SetSize(1602, 695)
 
-#-----------------------------------
-# saving camera placements for views
-
-# current camera placement for renderView1
+# set up camera placement
 main_view.CameraPosition = [.1, -.07, .05]
 main_view.CameraViewUp = [0, 0, 1]
 main_view.CameraViewAngle = 20
 
-#--------------------------------------------
-# uncomment the following to render all views
 #RenderAllViews()
-# alternatively, if you want to write images, you can use SaveScreenshot(...).
 SaveScreenshot("magnetic_drop.png", main_view)
 exit()
 
