@@ -112,7 +112,7 @@ show_timestep(sources, 0)
 main_view.Update()
 main_view.ResetCamera(False)
 main_layout = GetLayout()
-main_layout.SetSize(1602, 695)
+main_layout.SetSize(1600, 1600)
 
 # set up camera placement
 main_view.CameraPosition = [.1, -.07, .05]
