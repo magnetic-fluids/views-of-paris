@@ -101,6 +101,20 @@ for file in input_files:
 	field_vecs_display = Show(field_vecs, main_view, 'GeometryRepresentation')
 	field_vecs_display.SetScalarBarVisibility(main_view, True)
 
+	field_lines = StreamTracer(registrationName=file.name + '_field_lines', Input=gradient, SeedType='Line')
+	field_lines.Vectors = ['CELLS', 'Gradient']
+	field_lines.MaximumStreamlineLength = 0.02
+
+	# init the 'Line' selected for 'SeedType'
+	field_lines.SeedType.Point1 = [0.02, 0.02, 0.02]
+	field_lines.SeedType.Point2 = [0.04, 0.04, 0.04]
+
+	# show data in view
+	field_lines_display = Show(field_lines, main_view, 'GeometryRepresentation')
+	ColorBy(field_lines_display, ('POINTS', 'Gradient', 'Magnitude'))
+	field_lines_display.RescaleTransferFunctionToDataRange(True, False)
+	field_lines_display.SetScalarBarVisibility(main_view, True)
+
 # show data in view
 def show_timestep(source_list, timestep):
 	for (source, display) in source_list[timestep]:
