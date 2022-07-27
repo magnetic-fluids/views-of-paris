@@ -79,6 +79,25 @@ for file in input_files:
 	# set up magnetics coloring
 	display.SetRepresentationType('Wireframe')
 	ColorBy(display, ('CELLS', 'PHIMAG'))
+	display.RescaleTransferFunctionToDataRange(True, False)
+	display.SetScalarBarVisibility(main_view, True)
+	pHIMAGLUT = GetColorTransferFunction('PHIMAG')
+
+	# get the gradient of the magnetic potential
+	gradient = Gradient(registrationName=file.name + '_gradient', Input=source)
+	gradient.ScalarArray = ['CELLS', 'PHIMAG']
+	gradient_display = Show(gradient, main_view, 'StructuredGridRepresentation')
+
+	# show a collection of field vectors
+	field_vecs = Glyph(registrationName=file.name + '_field_vecs', Input=gradient, GlyphType='Arrow')
+	field_vecs.GlyphTransform = 'Transform2'
+	field_vecs.OrientationArray = ['CELLS', 'Gradient']
+	field_vecs.ScaleArray = ['CELLS', 'Gradient']
+	field_vecs.ScaleFactor = 5.7471208929013815e-06
+	field_vecs.MaximumNumberOfSamplePoints = 200
+
+	field_vecs_display = Show(field_vecs, main_view, 'GeometryRepresentation')
+	field_vecs_display.SetScalarBarVisibility(main_view, True)
 
 # show data in view
 def show_timestep(source_list, timestep):
