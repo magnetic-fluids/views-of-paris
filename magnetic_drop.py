@@ -1,4 +1,5 @@
 import sys
+import re
 from pathlib import Path
 from paraview.simple import *
 
@@ -11,34 +12,27 @@ paraview.simple._DisableFirstRenderCameraReset()
 #	exit()
 
 # path to input files
-#input_path = Path(sys.argv[1])
+input_path = Path.cwd() / 'magparis_vw/out/VTK' #Path(sys.argv[1]) / 'VTK'
 
-# create a new 'Legacy VTK Reader'
-vOF0002000000vtk = LegacyVTKReader(registrationName='VOF00020-00000.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00000.vtk'])
+# read all volume-of-fluid files and organize by timestep
+input_files = sorted(input_path.glob('VOF*.vtk'))
 
-# create a new 'Legacy VTK Reader'
-vOF0002000001vtk = LegacyVTKReader(registrationName='VOF00020-00001.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00001.vtk'])
+# assuming all the files are present and formatted as VOFstep-process.vtk...
+def file_to_idxs(file):
+	return map(int, re.findall(r'\d+', file.name))
 
-# create a new 'Legacy VTK Reader'
-vOF0002000002vtk = LegacyVTKReader(registrationName='VOF00020-00002.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00002.vtk'])
+[steps, processes] = file_to_idxs(input_files[-1])
+# preallocate list of sources
+sources = [[None] * (processes + 1)] * (steps + 1)
 
-# create a new 'Legacy VTK Reader'
-vOF0002000003vtk = LegacyVTKReader(registrationName='VOF00020-00003.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00003.vtk'])
+for file in input_files:
+	[step, process] = file_to_idxs(file)
+	sources[step][process] = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
 
-# create a new 'Legacy VTK Reader'
-vOF0002000004vtk = LegacyVTKReader(registrationName='VOF00020-00004.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00004.vtk'])
-
-# create a new 'Legacy VTK Reader'
-vOF0002000005vtk = LegacyVTKReader(registrationName='VOF00020-00005.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00005.vtk'])
-
-# create a new 'Legacy VTK Reader'
-vOF0002000006vtk = LegacyVTKReader(registrationName='VOF00020-00006.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00006.vtk'])
-
-# create a new 'Legacy VTK Reader'
-vOF0002000007vtk = LegacyVTKReader(registrationName='VOF00020-00007.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00007.vtk'])
+exit()
 
 # get active view
-renderView1 = GetActiveViewOrCreate('RenderView')
+view = GetActiveViewOrCreate('RenderView')
 
 # show data in view
 vOF0002000003vtkDisplay = Show(vOF0002000003vtk, renderView1, 'StructuredGridRepresentation')
