@@ -2,3 +2,4 @@
 bin.*
 magparis_vw/
 raindrop/
+__pycache__/
