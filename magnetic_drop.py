@@ -848,10 +848,9 @@ layout1.SetSize(1602, 695)
 # saving camera placements for views
 
 # current camera placement for renderView1
-renderView1.CameraPosition = [-0.01805638464436512, 0.05314179208499037, 0.033181673955170514]
-renderView1.CameraFocalPoint = [0.023775087472324076, 0.023989281671778797, 0.025242045263685498]
-renderView1.CameraViewUp = [0.12525645511572325, -0.08937180395335663, 0.9880908364669544]
-renderView1.CameraParallelScale = 0.034641015377090495
+renderView1.CameraPosition = [.1, -.07, .05]
+renderView1.CameraViewUp = [0, 0, 1]
+renderView1.CameraViewAngle = 20
 
 #--------------------------------------------
 # uncomment the following to render all views
