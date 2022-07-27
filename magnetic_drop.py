@@ -1,12 +1,17 @@
-# trace generated using paraview version 5.10.1
-#import paraview
-#paraview.compatibility.major = 5
-#paraview.compatibility.minor = 10
-
-#### import the simple module from the paraview
+import sys
+from pathlib import Path
 from paraview.simple import *
-#### disable automatic camera reset on 'Show'
+
+# disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
+
+# we should have gotten an "out" directory as an argument
+if len(sys.argv) != 2:
+	sys.stderr.write(sys.argv[0] + ": pass path to out/ directory as argument")
+	exit()
+
+# path to input files
+input_path = Path(sys.argv[1])
 
 # create a new 'Legacy VTK Reader'
 vOF0002000000vtk = LegacyVTKReader(registrationName='VOF00020-00000.vtk', FileNames=['/home/charles/CU/fluids_research/views-of-paris/magparis_vw/out/VTK/VOF00020-00000.vtk'])
@@ -852,3 +857,4 @@ renderView1.CameraParallelScale = 0.034641015377090495
 # uncomment the following to render all views
 # RenderAllViews()
 # alternatively, if you want to write images, you can use SaveScreenshot(...).
+SaveScreenshot("magnetic_drop.png", GetActiveView())
