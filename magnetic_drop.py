@@ -85,26 +85,30 @@ for timestep in range(steps):
 	field.ResultArrayName = 'Mag. Field'
 
 	# plot field vectors
-	field_vecs = Glyph(Input=field, GlyphType='Arrow')
-	field_vecs.OrientationArray = ['CELLS', 'Mag. Field']
-	field_vecs.ScaleArray = ['CELLS', 'Mag. Field']
-	field_vecs.ScaleFactor = 6e-6
-	field_vecs.MaximumNumberOfSamplePoints = 200
-	field_vecs_display = Show(field_vecs, main_view)
-	ColorBy(field_vecs_display, None)
-	field_vecs_display.AmbientColor = [1, 1, 0]
-	field_vecs_display.DiffuseColor = [1, 1, 0]
+#	field_vecs = Glyph(Input=field, GlyphType='Arrow')
+#	field_vecs.OrientationArray = ['CELLS', 'Mag. Field']
+#	field_vecs.ScaleArray = ['CELLS', 'Mag. Field']
+#	field_vecs.ScaleFactor = 6e-6
+#	field_vecs.MaximumNumberOfSamplePoints = 200
+#	field_vecs_display = Show(field_vecs, main_view)
+#	ColorBy(field_vecs_display, None)
+#	field_vecs_display.AmbientColor = [1, 1, 0]
+#	field_vecs_display.DiffuseColor = [1, 1, 0]
 
 	# plot magnetic field lines
 	field_lines = StreamTracer(Input=field)
-	field_lines.SeedType.Resolution = 200
+	field_lines.Vectors = ['CELLS', 'Mag. Field']
+	field_lines.MaximumStreamlineLength = .08
+	field_lines.SeedType.Point1 = [-.04, -.04, -.04]
+	field_lines.SeedType.Point2 = [.04, .04, .04]
+	field_lines.SeedType.Resolution = 199
 	field_lines_display = Show(field_lines, main_view)
 	ColorBy(field_lines_display, ('POINTS', 'Mag. Field', 'Magnitude'))
 	field_lines_display.RescaleTransferFunctionToDataRange(True)
 
 	# hang onto visible stuff from this timestep
 	# have to save field lines so that we can enable the scalar bar properly
-	sources_by_step[timestep].extend([field_vecs, field_lines])
+	sources_by_step[timestep].extend([field_lines])
 	field_lines_display_by_step[timestep] = field_lines_display
 
 # show/hide data in view
