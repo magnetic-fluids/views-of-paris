@@ -1,5 +1,6 @@
 import sys
 import re
+import numpy as np
 from pathlib import Path
 from paraview.simple import *
 
@@ -112,13 +113,17 @@ def hide_timestep(all_steps, timestep):
 	for source in all_steps[timestep]:
 		Hide(source, main_view)
 
+# useful for normalizing list-vectors
+def normalize(l):
+	return list(np.array(l) / np.linalg.norm(l))
+
 # set up the camera
 main_view.Update()
 main_view.ResetCamera(False)
 main_layout = GetLayout()
-main_layout.SetSize(800, 800)
-main_view.CameraPosition = [.1, -.07, .05]
-main_view.CameraViewUp = [0, 0, 1]
+#main_layout.SetSize(800, 800)
+main_view.CameraPosition = [.1, -.05, .09]
+main_view.CameraViewUp = normalize([0, 0, 1])
 main_view.CameraViewAngle = 20
 
 # hide everything to start with
