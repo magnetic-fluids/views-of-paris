@@ -17,7 +17,7 @@ main_view = GetActiveViewOrCreate('RenderView')
 input_path = Path.cwd() / 'magparis_vw/out/VTK' #Path(sys.argv[1]) / 'VTK'
 
 # read all volume-of-fluid files and organize by timestep
-input_files = sorted(input_path.glob('VOF00000*.vtk'))
+input_files = sorted(input_path.glob('VOF*.vtk'))
 
 # assuming all the files are present and formatted as VOFstep-process.vtk...
 def file_to_idxs(file):
@@ -30,17 +30,22 @@ steps += 1
 processes += 1
 print(f'steps={steps} processes={processes}')
 # preallocate list of VTK sources
-vtk_sources = [[None] * (processes)] * (steps)
+vof_sources = [[None] * (processes)] * (steps)
 
 for file in input_files:
 	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
 	[step, process] = file_to_idxs(file)
-	vtk_sources[step][process] = source
+	vof_sources[step][process] = source
+
+print(vof_sources)
+
+# array to hold visible stuff by timestep so we can show/hide them
+sources_by_step = [[]] * steps
 
 # allocate list of droplets (the VTK datasets merged by timestep) and set up
 # their rendering
-droplets = [None] * steps
-for source_list in vtk_sources:
+for timestep in range(steps):
+	source_list = vof_sources[timestep]
 	droplet_group = GroupDatasets(Input=source_list)
 	droplet = MergeBlocks(Input=droplet_group)
 	cell_to_point = CellDatatoPointData(Input=droplet)
@@ -56,9 +61,12 @@ for source_list in vtk_sources:
 	contour_display.AmbientColor = [.44, .26, .25]
 	contour_display.DiffuseColor = [.44, .26, .25]
 
+	# hang onto visible stuff from this timestep
+	sources_by_step[timestep].extend([contour])
+
 # read all magnetics files and organize by timestep
-input_files = sorted(input_path.glob('mag00000*.vtk'))
-mag_sources = [[None] * (processes + 1)] * (steps + 1)
+input_files = sorted(input_path.glob('mag*.vtk'))
+mag_sources = [[None] * (processes)] * (steps)
 
 for file in input_files:
 	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
@@ -66,7 +74,9 @@ for file in input_files:
 	mag_sources[step][process] = source
 
 # merge magnetics data by timestep and render some fun stuff
-for source_list in mag_sources:
+magnetics_by_step = [[]] * steps
+for timestep in range(steps):
+	source_list = mag_sources[timestep]
 	dataset_group = GroupDatasets(Input=source_list)
 	potential = MergeBlocks(Input=dataset_group)
 
@@ -92,18 +102,29 @@ for source_list in mag_sources:
 	field_lines_display.RescaleTransferFunctionToDataRange(True)
 	field_lines_display.SetScalarBarVisibility(main_view, True)
 
-# show data in view
-def show_timestep(source_list, timestep):
-	for (source, display) in source_list[timestep]:
+	# hang onto visible stuff from this timestep
+	sources_by_step[timestep].extend([field_vecs, field_lines])
+
+# show/hide data in view
+def show_timestep(all_steps, timestep):
+	for source in all_steps[timestep]:
 		Show(source, main_view)
 
-#show_timestep(sources, 0)
+def hide_timestep(all_steps, timestep):
+	for source in all_steps[timestep]:
+		Hide(source, main_view)
 
-# set up plot and save a screenie
+# hide everything to start with
+for timestep in range(steps):
+	hide_timestep(sources_by_step, timestep)
+
+show_timestep(sources_by_step, 0)
+
+# set up plot and save some screenies
 main_view.Update()
 main_view.ResetCamera(False)
 main_layout = GetLayout()
-main_layout.SetSize(1600, 1600)
+main_layout.SetSize(800, 800)
 
 # set up camera placement
 main_view.CameraPosition = [.1, -.07, .05]
