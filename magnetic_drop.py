@@ -51,7 +51,10 @@ for source_list in vtk_sources:
 	contour.ContourBy = ['POINTS', 'VOF']
 	contour.Isosurfaces = [.5]
 	contour_display = Show(contour, main_view)
-	ColorBy(contour_display, ('POINTS', 'VOF'))
+
+	ColorBy(contour_display, None)
+	contour_display.AmbientColor = [.44, .26, .25]
+	contour_display.DiffuseColor = [.44, .26, .25]
 
 # read all magnetics files and organize by timestep
 input_files = sorted(input_path.glob('mag00000*.vtk'))
@@ -86,6 +89,8 @@ for source_list in mag_sources:
 	field_lines.SeedType.Resolution = 200
 	field_lines_display = Show(field_lines, main_view)
 	ColorBy(field_lines_display, ('POINTS', 'Gradient', 'Magnitude'))
+	field_lines_display.RescaleTransferFunctionToDataRange(True)
+	field_lines_display.SetScalarBarVisibility(main_view, True)
 
 #
 #	# set up magnetics coloring
