@@ -112,26 +112,23 @@ def hide_timestep(all_steps, timestep):
 	for source in all_steps[timestep]:
 		Hide(source, main_view)
 
+# set up the camera
+main_view.Update()
+main_view.ResetCamera(False)
+main_layout = GetLayout()
+main_layout.SetSize(800, 800)
+main_view.CameraPosition = [.1, -.07, .05]
+main_view.CameraViewUp = [0, 0, 1]
+main_view.CameraViewAngle = 20
+
 # hide everything to start with
 for timestep in range(steps):
 	hide_timestep(sources_by_step, timestep)
 
-# set up plot and save some screenies
+# save some screenies
 for timestep in range(steps):
 	show_timestep(sources_by_step, timestep)
-
-	main_view.Update()
-	main_view.ResetCamera(False)
-	main_layout = GetLayout()
-	main_layout.SetSize(800, 800)
-
-	# set up camera placement
-	main_view.CameraPosition = [.1, -.07, .05]
-	main_view.CameraViewUp = [0, 0, 1]
-	main_view.CameraViewAngle = 20
-
-	#RenderAllViews()
+	RenderAllViews()
 	filename = 'screenshots/magnetic_drop_%05d.png' % (timestep)
 	SaveScreenshot(filename, main_view)
-
 	hide_timestep(sources_by_step, timestep)
