@@ -60,7 +60,7 @@ sources_by_step = [[] for _ in range(steps)]
 # allocate list of droplets (the VTK datasets merged by step) and set up
 # their rendering
 for step in step_range:
-	source_list = vof_sources[step]
+	source_list = vof_sources[step][0:int(.75*processes)]
 	droplet_group = GroupDatasets(Input=source_list)
 	droplet = MergeBlocks(Input=droplet_group)
 	cell_to_point = CellDatatoPointData(Input=droplet)
@@ -75,6 +75,7 @@ for step in step_range:
 	ColorBy(contour_display, None)
 	contour_display.AmbientColor = [.44, .26, .25]
 	contour_display.DiffuseColor = [.44, .26, .25]
+	contour_display.Representation = 'Surface'
 
 	# hang onto visible stuff from this step
 	sources_by_step[step].extend([contour])
@@ -115,9 +116,9 @@ for step in step_range:
 	field_lines = StreamTracer(Input=field)
 	field_lines.Vectors = ['CELLS', 'Mag. Field']
 	field_lines.MaximumStreamlineLength = .08
-	field_lines.SeedType.Point1 = [-.04, -.04, -.04]
-	field_lines.SeedType.Point2 = [.04, .04, .04]
-	field_lines.SeedType.Resolution = 199
+	field_lines.SeedType.Point1 = [0, 0.025, 0]
+	field_lines.SeedType.Point2 = [.04, 0.015, .04]
+	field_lines.SeedType.Resolution = 99
 	field_lines_display = Show(field_lines, main_view)
 	ColorBy(field_lines_display, ('POINTS', 'Mag. Field', 'Magnitude'))
 	field_lines_display.RescaleTransferFunctionToDataRange(True)
@@ -140,15 +141,15 @@ def hide_step(all_steps, step):
 		Hide(source, main_view)
 
 # useful for normalizing list-vectors
-def normalize(l):
-	return list(np.array(l) / np.linalg.norm(l))
+def normalize(l, norm=1):
+	return list(np.array(l) / np.linalg.norm(l) * norm)
 
 # set up the camera
 main_view.Update()
 main_view.ResetCamera(False)
 main_layout = GetLayout()
 main_layout.SetSize(800, 800)
-main_view.CameraPosition = [.1, -.05, .09]
+main_view.CameraPosition = normalize([0.5, 1, .4], .15)
 main_view.CameraViewUp = normalize([0, 0, 1])
 main_view.CameraViewAngle = 20
 
