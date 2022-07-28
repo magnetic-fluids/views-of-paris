@@ -23,43 +23,35 @@ input_files = sorted(input_path.glob('VOF00000*.vtk'))
 def file_to_idxs(file):
 	return map(int, re.findall(r'\d+', file.name))
 
+# the last file in the list should tell us the maximum timestep & source index
+# (starting from zero)
 [steps, processes] = file_to_idxs(input_files[-1])
-print(f'{steps} steps, {processes} processes')
-# preallocate list of sources
-sources = [[None] * (processes + 1)] * (steps + 1)
+steps += 1
+processes += 1
+print(f'steps={steps} processes={processes}')
+# preallocate list of VTK sources
+vtk_sources = [[None] * (processes)] * (steps)
 
 for file in input_files:
 	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
-	display = GetDisplayProperties(source)
 	[step, process] = file_to_idxs(file)
-	sources[step][process] = (source, display)
-	Hide(source, main_view)
+	vtk_sources[step][process] = source
 
-	# convert cell data to point data
-	cell_to_point = CellDatatoPointData(registrationName=file.name + '_cell_to_point', Input=source)
-	cell_to_point.CellDataArraytoprocess = ['VOF']
+# allocate list of droplets (the VTK datasets merged by timestep) and set up
+# their rendering
+droplets = [None] * steps
+for source_list in vtk_sources:
+	droplet_group = GroupDatasets(Input=source_list)
+	droplet = MergeBlocks(Input=droplet_group)
+	cell_to_point = CellDatatoPointData(Input=droplet)
+	#cell_to_point.CellDataArraytoprocess = ['VOF']
 
-	# create a display object, as it's necessary for the colormap
-	cell_to_point_display = Show(cell_to_point, main_view, 'StructuredGridRepresentation')
-	ColorBy(cell_to_point_display, ('POINTS', 'VOF'))
-	cell_to_point_display.RescaleTransferFunctionToDataRange(True, False)
-	cell_to_point_display.SetScalarBarVisibility(main_view, True)
-	vOFLUT = GetColorTransferFunction('VOF')
-	ColorBy(cell_to_point_display, None)
-	HideScalarBarIfNotNeeded(vOFLUT, main_view)
-	Hide(cell_to_point, main_view)
-
-	# create a contour around the drop
-	contour = Contour(registrationName=file.name + '_contour', Input=cell_to_point)
+	# show the droplet as a countour view
+	contour = Contour(Input=cell_to_point)
 	contour.ContourBy = ['POINTS', 'VOF']
-	contour.Isosurfaces = [0.5]
-	contour.PointMergeMethod = 'Uniform Binning'
-
-	contour_display = Show(contour, main_view, 'GeometryRepresentation')
-	contour_display.Representation = 'Surface'
-	contour_display.ColorArrayName = ['POINTS', 'VOF']
-	contour_display.LookupTable = vOFLUT
-	contour_display.SetScalarBarVisibility(main_view, True)
+	contour.Isosurfaces = [.5]
+	contour_display = Show(contour, main_view)
+	ColorBy(contour_display, ('POINTS', 'VOF'))
 
 # read all magnetics files and organize by timestep
 input_files = sorted(input_path.glob('mag00000*.vtk'))
