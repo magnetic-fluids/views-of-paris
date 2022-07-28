@@ -11,7 +11,7 @@ class BadArgumentError(RuntimeError):
 # parse arguments, of which we have two
 parser = argparse.ArgumentParser()
 parser.add_argument('input_dir', help='directory containing input VTK files', type=Path)
-parser.add_argument('-s', '--step', help='plot a specific step', type=int)
+parser.add_argument('-s', '--step', help='plot specific steps', type=int, nargs='+')
 args = parser.parse_args()
 
 # check if we were actually passed a directory
@@ -41,11 +41,12 @@ vof_sources = [[None for _ in range(processes)] for _ in range(steps)]
 
 step_range = range(steps)
 if args.step != None:
-	if args.step < 0 or args.step >= steps:
-		raise BadArgumentError(f'step {args.step} out of range!')
+	for step in args.step:
+		if step < 0 or step >= steps:
+			raise BadArgumentError(f'step {step} out of range!')
 
-	print(f'plotting step {args.step} only')
-	step_range = [args.step]
+	print(f'plotting steps {args.step} only')
+	step_range = args.step
 
 for step in step_range:
 	for process in range(processes):
