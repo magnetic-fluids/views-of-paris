@@ -1,8 +1,8 @@
-import sys
-import re
 import numpy as np
-from pathlib import Path
+import re
+import sys
 from paraview.simple import *
+from pathlib import Path
 
 # disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
