@@ -13,16 +13,18 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 # uncomment following to set a specific view size
 # renderView1.ViewSize = [2751, 1034]
 
+# keep old working directory
+top_level_dir = os.getcwd()
 
 #find all vof vtk files
-os.chdir('/home/cofphe/Documents/PARIS_Experiments/2_droplet_experiments')
+os.chdir('PARIS_Experiments/2_droplet_experiments')
 
 exps = os.listdir()
 exps.sort()
 print(exps)
 for aa in range(len(exps)):
     print(exps[aa])
-    os.chdir('/home/cofphe/Documents/PARIS_Experiments/2_droplet_experiments/' + exps[aa] +'/VTK')
+    os.chdir(os.path.join(top_level_dir, 'PARIS_Experiments/2_droplet_experiments/' + exps[aa] +'/VTK'))
 
     vof_files = glob.glob('VOF*')
 
@@ -279,7 +281,8 @@ print(cvof*vol_cell)
 print(np.prod(side_lengths))
 print(output_array_center.shape)
 
-os.chdir('/home/cofphe/Documents/PARIS_Experiments')
+os.chdir(os.path.join(top_level_dir, 'PARIS_Experiments/2_droplet_experiments'))
 np.savetxt('output_center.csv', output_array_center, delimiter = ',', header = 'exp#,tstep,blob,vol,COM_x,COM_y,COM_z,Ixx,Iyy,Izz,Ixy,Ixz,Iyz')
 np.savetxt('output_arithmetic.csv', output_array_arithmetic, delimiter = ',', header = 'exp#,tstep,blob,vol,COM_x,COM_y,COM_z,Ixx,Iyy,Izz,Ixy,Ixz,Iyz')
 np.savetxt('output_geometric.csv', output_array_geometric, delimiter = ',', header = 'exp#,tstep,blob,vol,COM_x,COM_y,COM_z,Ixx,Iyy,Izz,Ixy,Ixz,Iyz')
+os.chdir(top_level_dir)
