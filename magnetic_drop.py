@@ -131,7 +131,7 @@ def normalize(l):
 main_view.Update()
 main_view.ResetCamera(False)
 main_layout = GetLayout()
-#main_layout.SetSize(800, 800)
+main_layout.SetSize(800, 800)
 main_view.CameraPosition = [.1, -.05, .09]
 main_view.CameraViewUp = normalize([0, 0, 1])
 main_view.CameraViewAngle = 20
