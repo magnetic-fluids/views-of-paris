@@ -15,7 +15,7 @@ renderView1 = GetActiveViewOrCreate('RenderView')
 
 
 #find all vof vtk files
-os.chdir('/home/cofphe/Documents/Kor_chi_03_h1500_128/out/VTK')
+os.chdir('Kor_chi_03_h1500_128/out/VTK')
 vof_files = glob.glob('VOF*')
 
 #determine the number of timesteps and the number of processes (vtk files per timestep)
