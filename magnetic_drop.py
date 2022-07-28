@@ -30,17 +30,15 @@ steps += 1
 processes += 1
 print(f'steps={steps} processes={processes}')
 # preallocate list of VTK sources
-vof_sources = [[None] * (processes)] * (steps)
+vof_sources = [[None for _ in range(processes)] for _ in range(steps)]
 
 for file in input_files:
 	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
 	[step, process] = file_to_idxs(file)
 	vof_sources[step][process] = source
 
-print(vof_sources)
-
 # array to hold visible stuff by timestep so we can show/hide them
-sources_by_step = [[]] * steps
+sources_by_step = [[] for _ in range(steps)]
 
 # allocate list of droplets (the VTK datasets merged by timestep) and set up
 # their rendering
@@ -66,7 +64,7 @@ for timestep in range(steps):
 
 # read all magnetics files and organize by timestep
 input_files = sorted(input_path.glob('mag*.vtk'))
-mag_sources = [[None] * (processes)] * (steps)
+mag_sources = [[None for _ in range(processes)] for _ in range(steps)]
 
 for file in input_files:
 	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
@@ -74,7 +72,7 @@ for file in input_files:
 	mag_sources[step][process] = source
 
 # merge magnetics data by timestep and render some fun stuff
-magnetics_by_step = [[]] * steps
+magnetics_by_step = [[] for _ in range(steps)]
 for timestep in range(steps):
 	source_list = mag_sources[timestep]
 	dataset_group = GroupDatasets(Input=source_list)
