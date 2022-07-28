@@ -1,30 +1,36 @@
+import argparse
 import numpy as np
 import re
 import sys
 from paraview.simple import *
 from pathlib import Path
 
+class BadArgumentError(RuntimeError):
+	pass
+
+# parse arguments, of which we have two
+parser = argparse.ArgumentParser()
+parser.add_argument('input_dir', help='directory containing input VTK files', type=Path)
+parser.add_argument('-s', '--step', help='plot a specific step', type=int)
+args = parser.parse_args()
+
+# check if we were actually passed a directory
+if not args.input_dir.is_dir():
+	raise BadArgumentError(f'input path should point to a directory')
+
 # disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 # get active view
 main_view = GetActiveViewOrCreate('RenderView')
 
-# we should have gotten an "out" directory as an argument
-#if len(sys.argv) != 2:
-#	sys.stderr.write(sys.argv[0] + ": pass path to out/ directory as argument")
-#	exit()
-
-# path to input files
-input_path = Path.cwd() / 'magparis_vw/out/VTK' #Path(sys.argv[1]) / 'VTK'
-
-# read all volume-of-fluid files and organize by timestep
-input_files = sorted(input_path.glob('VOF*.vtk'))
+# read all volume-of-fluid files and organize by step
+input_files = sorted(args.input_dir.glob('VOF*.vtk'))
 
 # assuming all the files are present and formatted as VOFstep-process.vtk...
 def file_to_idxs(file):
 	return map(int, re.findall(r'\d+', file.name))
 
-# the last file in the list should tell us the maximum timestep & source index
+# the last file in the list should tell us the maximum step & source index
 # (starting from zero)
 [steps, processes] = file_to_idxs(input_files[-1])
 steps += 1
@@ -33,18 +39,27 @@ print(f'steps={steps} processes={processes}')
 # preallocate list of VTK sources
 vof_sources = [[None for _ in range(processes)] for _ in range(steps)]
 
-for file in input_files:
-	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
-	[step, process] = file_to_idxs(file)
-	vof_sources[step][process] = source
+step_range = range(steps)
+if args.step != None:
+	if args.step < 0 or args.step >= steps:
+		raise BadArgumentError(f'step {args.step} out of range!')
 
-# array to hold visible stuff by timestep so we can show/hide them
+	print(f'plotting step {args.step} only')
+	step_range = [args.step]
+
+for step in step_range:
+	for process in range(processes):
+		vof_file = args.input_dir / ('VOF%05d-%05d.vtk' % (step, process))
+		source = LegacyVTKReader(FileNames=[str(vof_file)])
+		vof_sources[step][process] = source
+
+# array to hold visible stuff by step so we can show/hide them
 sources_by_step = [[] for _ in range(steps)]
 
-# allocate list of droplets (the VTK datasets merged by timestep) and set up
+# allocate list of droplets (the VTK datasets merged by step) and set up
 # their rendering
-for timestep in range(steps):
-	source_list = vof_sources[timestep]
+for step in step_range:
+	source_list = vof_sources[step]
 	droplet_group = GroupDatasets(Input=source_list)
 	droplet = MergeBlocks(Input=droplet_group)
 	cell_to_point = CellDatatoPointData(Input=droplet)
@@ -60,22 +75,22 @@ for timestep in range(steps):
 	contour_display.AmbientColor = [.44, .26, .25]
 	contour_display.DiffuseColor = [.44, .26, .25]
 
-	# hang onto visible stuff from this timestep
-	sources_by_step[timestep].extend([contour])
+	# hang onto visible stuff from this step
+	sources_by_step[step].extend([contour])
 
-# read all magnetics files and organize by timestep
-input_files = sorted(input_path.glob('mag*.vtk'))
+# read all magnetics files and organize by step
 mag_sources = [[None for _ in range(processes)] for _ in range(steps)]
 
-for file in input_files:
-	source = LegacyVTKReader(registrationName=file.name, FileNames=[str(file)])
-	[step, process] = file_to_idxs(file)
-	mag_sources[step][process] = source
+for step in step_range:
+	for process in range(processes):
+		mag_file = args.input_dir / ('mag%05d-%05d.vtk' % (step, process))
+		source = LegacyVTKReader(FileNames=[str(mag_file)])
+		mag_sources[step][process] = source
 
-# merge magnetics data by timestep and render some fun stuff
+# merge magnetics data by step and render some fun stuff
 field_lines_display_by_step = [None for _ in range(steps)]
-for timestep in range(steps):
-	source_list = mag_sources[timestep]
+for step in step_range:
+	source_list = mag_sources[step]
 	dataset_group = GroupDatasets(Input=source_list)
 	potential = MergeBlocks(Input=dataset_group)
 
@@ -106,21 +121,21 @@ for timestep in range(steps):
 	ColorBy(field_lines_display, ('POINTS', 'Mag. Field', 'Magnitude'))
 	field_lines_display.RescaleTransferFunctionToDataRange(True)
 
-	# hang onto visible stuff from this timestep
+	# hang onto visible stuff from this step
 	# have to save field lines so that we can enable the scalar bar properly
-	sources_by_step[timestep].extend([field_lines])
-	field_lines_display_by_step[timestep] = field_lines_display
+	sources_by_step[step].extend([field_lines])
+	field_lines_display_by_step[step] = field_lines_display
 
 # show/hide data in view
-def show_timestep(all_steps, timestep):
-	for source in all_steps[timestep]:
+def show_step(all_steps, step):
+	for source in all_steps[step]:
 		Show(source, main_view)
 
 	# show the scale bar for field lines (because it gets hidden otherwise)
-	field_lines_display_by_step[timestep].SetScalarBarVisibility(main_view, True)
+	field_lines_display_by_step[step].SetScalarBarVisibility(main_view, True)
 
-def hide_timestep(all_steps, timestep):
-	for source in all_steps[timestep]:
+def hide_step(all_steps, step):
+	for source in all_steps[step]:
 		Hide(source, main_view)
 
 # useful for normalizing list-vectors
@@ -137,13 +152,13 @@ main_view.CameraViewUp = normalize([0, 0, 1])
 main_view.CameraViewAngle = 20
 
 # hide everything to start with
-for timestep in range(steps):
-	hide_timestep(sources_by_step, timestep)
+for step in step_range:
+	hide_step(sources_by_step, step)
 
 # save some screenies
-for timestep in range(steps):
-	show_timestep(sources_by_step, timestep)
+for step in step_range:
+	show_step(sources_by_step, step)
 	RenderAllViews()
-	filename = 'screenshots/magnetic_drop_%05d.png' % (timestep)
+	filename = 'screenshots/magnetic_drop_%05d.png' % (step)
 	SaveScreenshot(filename, main_view)
-	hide_timestep(sources_by_step, timestep)
+	hide_step(sources_by_step, step)
