@@ -56,6 +56,8 @@ for step in step_range:
 
 # array to hold visible stuff by step so we can show/hide them
 sources_by_step = [[] for _ in range(steps)]
+# (for things that have a scalar bar they need shown)
+scalar_bar_needed_by_step = [[] for _ in range(steps)]
 
 # allocate list of droplets (the VTK datasets merged by step) and set up
 # their rendering
@@ -69,16 +71,20 @@ for step in step_range:
 	# show the droplet as a countour view
 	contour = Contour(Input=cell_to_point)
 	contour.ContourBy = ['POINTS', 'VOF']
-	contour.Isosurfaces = [.5]
+	contour.Isosurfaces = [.9, .3]
 	contour_display = Show(contour, main_view)
 
-	ColorBy(contour_display, None)
-	contour_display.AmbientColor = [.44, .26, .25]
-	contour_display.DiffuseColor = [.44, .26, .25]
-	contour_display.Representation = 'Surface'
+	# set up a greenish colormap for fluid volume
+	ColorBy(contour_display, ('POINTS', 'VOF'))
+	VOF_color = GetColorTransferFunction('VOF')
+	VOF_color.ApplyPreset('Linear Green (Gr4L)', True)
+	VOF_color.AutomaticRescaleRangeMode = 'Never'
+	VOF_color.RescaleTransferFunction(0, 1)
+	#contour_display.Representation = 'Surface'
 
 	# hang onto visible stuff from this step
 	sources_by_step[step].extend([contour])
+	scalar_bar_needed_by_step[step].extend([contour_display])
 
 # read all magnetics files and organize by step
 mag_sources = [[None for _ in range(processes)] for _ in range(steps)]
@@ -90,7 +96,6 @@ for step in step_range:
 		mag_sources[step][process] = source
 
 # merge magnetics data by step and render some fun stuff
-field_lines_display_by_step = [None for _ in range(steps)]
 for step in step_range:
 	source_list = mag_sources[step]
 	dataset_group = GroupDatasets(Input=source_list)
@@ -126,15 +131,16 @@ for step in step_range:
 	# hang onto visible stuff from this step
 	# have to save field lines so that we can enable the scalar bar properly
 	sources_by_step[step].extend([field_lines])
-	field_lines_display_by_step[step] = field_lines_display
+	scalar_bar_needed_by_step[step].extend([field_lines_display])
 
 # show/hide data in view
 def show_step(all_steps, step):
 	for source in all_steps[step]:
 		Show(source, main_view)
 
-	# show the scale bar for field lines (because it gets hidden otherwise)
-	field_lines_display_by_step[step].SetScalarBarVisibility(main_view, True)
+	# show the scale bar for things that need it(because it gets hidden otherwise)
+	for needs_bar in scalar_bar_needed_by_step[step]:
+		needs_bar.SetScalarBarVisibility(main_view, True)
 
 def hide_step(all_steps, step):
 	for source in all_steps[step]:
