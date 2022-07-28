@@ -79,11 +79,12 @@ for timestep in range(steps):
 	dataset_group = GroupDatasets(Input=source_list)
 	potential = MergeBlocks(Input=dataset_group)
 
-	# take the gradient of the magnetic potential and plot field vectors
+	# take the gradient of the magnetic potential and plot it
 	field = Gradient(Input=potential)
 	field.ScalarArray = ['CELLS', 'PHIMAG']
 	field.ResultArrayName = 'Mag. Field'
 
+	# plot field vectors
 	field_vecs = Glyph(Input=field, GlyphType='Arrow')
 	field_vecs.OrientationArray = ['CELLS', 'Mag. Field']
 	field_vecs.ScaleArray = ['CELLS', 'Mag. Field']
