@@ -73,7 +73,7 @@ for file in input_files:
 	mag_sources[step][process] = source
 
 # merge magnetics data by timestep and render some fun stuff
-magnetics_by_step = [[] for _ in range(steps)]
+field_lines_display_by_step = [None for _ in range(steps)]
 for timestep in range(steps):
 	source_list = mag_sources[timestep]
 	dataset_group = GroupDatasets(Input=source_list)
@@ -82,10 +82,11 @@ for timestep in range(steps):
 	# take the gradient of the magnetic potential and plot field vectors
 	field = Gradient(Input=potential)
 	field.ScalarArray = ['CELLS', 'PHIMAG']
+	field.ResultArrayName = 'Mag. Field'
 
 	field_vecs = Glyph(Input=field, GlyphType='Arrow')
-	field_vecs.OrientationArray = ['CELLS', 'Gradient']
-	field_vecs.ScaleArray = ['CELLS', 'Gradient']
+	field_vecs.OrientationArray = ['CELLS', 'Mag. Field']
+	field_vecs.ScaleArray = ['CELLS', 'Mag. Field']
 	field_vecs.ScaleFactor = 6e-6
 	field_vecs.MaximumNumberOfSamplePoints = 200
 	field_vecs_display = Show(field_vecs, main_view)
@@ -97,17 +98,21 @@ for timestep in range(steps):
 	field_lines = StreamTracer(Input=field)
 	field_lines.SeedType.Resolution = 200
 	field_lines_display = Show(field_lines, main_view)
-	ColorBy(field_lines_display, ('POINTS', 'Gradient', 'Magnitude'))
+	ColorBy(field_lines_display, ('POINTS', 'Mag. Field', 'Magnitude'))
 	field_lines_display.RescaleTransferFunctionToDataRange(True)
-	field_lines_display.SetScalarBarVisibility(main_view, True)
 
 	# hang onto visible stuff from this timestep
+	# have to save field lines so that we can enable the scalar bar properly
 	sources_by_step[timestep].extend([field_vecs, field_lines])
+	field_lines_display_by_step[timestep] = field_lines_display
 
 # show/hide data in view
 def show_timestep(all_steps, timestep):
 	for source in all_steps[timestep]:
 		Show(source, main_view)
+
+	# show the scale bar for field lines (because it gets hidden otherwise)
+	field_lines_display_by_step[timestep].SetScalarBarVisibility(main_view, True)
 
 def hide_timestep(all_steps, timestep):
 	for source in all_steps[timestep]:
