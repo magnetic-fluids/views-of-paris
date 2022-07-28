@@ -66,14 +66,26 @@ for file in input_files:
 for source_list in mag_sources:
 	dataset_group = GroupDatasets(Input=source_list)
 	potential = MergeBlocks(Input=dataset_group)
+
+	# take the gradient of the magnetic potential and plot field vectors
 	field = Gradient(Input=potential)
 	field.ScalarArray = ['CELLS', 'PHIMAG']
+
 	field_vecs = Glyph(Input=field, GlyphType='Arrow')
 	field_vecs.OrientationArray = ['CELLS', 'Gradient']
 	field_vecs.ScaleArray = ['CELLS', 'Gradient']
 	field_vecs.ScaleFactor = 6e-6
 	field_vecs.MaximumNumberOfSamplePoints = 200
-	Show(field_vecs, main_view)
+	field_vecs_display = Show(field_vecs, main_view)
+	ColorBy(field_vecs_display, None)
+	field_vecs_display.AmbientColor = [1, 1, 0]
+	field_vecs_display.DiffuseColor = [1, 1, 0]
+
+	# plot magnetic field lines
+	field_lines = StreamTracer(Input=field)
+	field_lines.SeedType.Resolution = 200
+	field_lines_display = Show(field_lines, main_view)
+	ColorBy(field_lines_display, ('POINTS', 'Gradient', 'Magnitude'))
 
 #
 #	# set up magnetics coloring
